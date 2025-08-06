@@ -10,36 +10,47 @@
 # 3. Visit: http://127.0.0.1:5000/ in a web browser to access the dashboard
 
 from flask import Flask, jsonify, send_from_directory, request
-import os
+import os, sqlite, time
+
+from ble.config import DB_PATH
 
 app = Flask(__name__, static_folder='static')
 
-# Mock data (replace with BLE/DB later)
-MOCK_OCCUPANCY = 4
-MOCK_MEMBERS = {
-    "valid_members": ["Evan", "Genevieve", "Mathew"],
-    "non_members": ["Saiman"]
-}
 
 # Serve index.html
 @app.route('/')
-def serve_index():
-    return send_from_directory('.', 'index.html')
+def index():
+	return send_from_directory('.', 'index.html')
 
-# Serve static files (CSS, JS)
 @app.route('/static/<path:filename>')
-def serve_static(filename):
-    return send_from_directory('static', filename)
+def static_files(filename):
+	return send_from_directory('static', filename
 
-# Occupancy endpoint
 @app.route('/count')
 def count():
-    return jsonify({"occupancy": MOCK_OCCUPANCY})
+	with get_db() as con:
+		cutoff = time.time() - 300  # 5-minute presence window
+		cur = con.execute("SELECT COUNT(*) FROM presence WHERE last_seen > ?", (cutoff,))
+		occ, = cur.fetchone()
+	return jsonify({"occupancy": occ})
 
-# Member list endpoint
 @app.route('/members')
 def members():
-    return jsonify(MOCK_MEMBERS)
+	with get_db() as con:
+		cutoff = time.time() - 300
+		rows = con.execute(
+
+#           SELECT p.hash, m.name
+#           FROM presence p
+#           LEFT JOIN members m ON p.hash = m.hash
+#           WHERE p.last_seen > ?
+
+			,(cutoff,),
+		)
+		valid, non = [], []
+		for h, name in rows:
+			(valid if name else non).append(name or h[:8])  # show first 8 chars for unknown
+	return jsonify({"valid_members": valid, "non_members": non})
 
 if __name__ == '__main__':
     app.run(debug=True)

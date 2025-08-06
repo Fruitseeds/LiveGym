@@ -1,4 +1,4 @@
-const useMockData = true;
+const useMockData = false;
 
 // Fake user database
 const users = [

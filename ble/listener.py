@@ -1,7 +1,71 @@
-# listener.py
-# This script passively listens for BLE advertisements,
-# hashes each detected MAC address with a secret salt (from config.py),
-# and inserts the hashed value with a timestamp into the 'detections' table
-# in the shared SQLite database (livegym.db).
-#
-# Run this continuously on the Raspberry Pi to feed live data to the dashboard.
+#!/usr/bin/env python3
+"""
+BLE listener --> SQLite presence table
+Run this on the Pi:  sudo python3 ble/listener.py
+"""
+import asyncio, hashlib, signal, time, sqlite3, sys
+from bleak import BleakScanner
+from datetime import datetime, timedelta
+
+from ble.config import SECRET_SALT, DB_PATH
+
+WINDOW = 30              # seconds
+PRESENT_TTL = 300        # keep a device “present” for 5 min after last sighting
+
+# ---------- SQLite helpers -------------------------------------------------
+schema = """
+CREATE TABLE IF NOT EXISTS presence (
+    hash TEXT PRIMARY KEY,
+    last_seen REAL
+);
+CREATE TABLE IF NOT EXISTS members (
+    hash TEXT PRIMARY KEY,
+    name TEXT
+);
+"""
+con = sqlite3.connect(DB_PATH)
+con.executescript(schema)
+con.commit()
+
+def upsert_presence(dev_hash: str):
+    con.execute(
+        "INSERT OR REPLACE INTO presence(hash, last_seen) VALUES (?, ?)",
+        (dev_hash, time.time()),
+    )
+    con.commit()
+
+def purge_expired():
+    threshold = time.time() - PRESENT_TTL
+    con.execute("DELETE FROM presence WHERE last_seen < ?", (threshold,))
+    con.commit()
+
+# ---------- BLE aggregation -------------------------------------------------
+class Window:
+    def __init__(self, dur: int): self.dur, self.t0 = dur, time.time()
+    def expired(self): return time.time() - self.t0 >= self.dur
+    def reset(self): self.t0 = time.time()
+
+async def main():
+    w = Window(WINDOW)
+
+    def handle(dev, data):
+        mac = dev.address
+        hid = hashlib.sha256(mac.encode() + SECRET_SALT).hexdigest()
+        upsert_presence(hid)
+
+    async with BleakScanner(handle, scanning_mode="passive"):
+        print("[BLE] passive scan … Ctrl-C to quit")
+        try:
+            while True:
+                await asyncio.sleep(1)
+                if w.expired():
+                    purge_expired()
+                    w.reset()
+        except asyncio.CancelledError:
+            pass
+
+if __name__ == "__main__":
+    loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, lambda s=sig: loop.stop())
+    loop.run_until_complete(main())
