@@ -89,7 +89,8 @@ li {
 }
 
 #login-section button,
-#logout-button {
+#logout-button,
+#selfcheck-btn {
   padding: 10px 20px;
   margin-top: 12px;
   font-weight: 600;
@@ -101,6 +102,7 @@ li {
 }
 
 #login-section button:hover,
-#logout-button:hover {
+#logout-button:hover,
+#selfcheck-btn:hover {
   background-color: #1a242f;
 }
