@@ -1,15 +1,10 @@
-#!/usr/bin/env python3
-
-#BLE listener --> SQLite presence table
-#Run this on the Pi:  sudo python3 ble/listener.py
-
 import asyncio, hashlib, signal, time, sqlite3, sys, os
 from bleak import BleakScanner
 from datetime import datetime, timedelta
 from ble.config import SECRET_SALT, DB_PATH
 from ble import mock_ble
-WINDOW = 30              # seconds
-PRESENT_TTL = 300        # keep a device “present” for 5 min after last sighting
+WINDOW = 30              
+PRESENT_TTL = 300        
 
 # ---------- SQLite helpers -------------------------------------------------
 schema = """
