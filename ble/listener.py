@@ -3,12 +3,11 @@
 #BLE listener --> SQLite presence table
 #Run this on the Pi:  sudo python3 ble/listener.py
 
-import asyncio, hashlib, signal, time, sqlite3, sys
+import asyncio, hashlib, signal, time, sqlite3, sys, os
 from bleak import BleakScanner
 from datetime import datetime, timedelta
-
 from ble.config import SECRET_SALT, DB_PATH
-
+from ble import mock_ble
 WINDOW = 30              # seconds
 PRESENT_TTL = 300        # keep a device “present” for 5 min after last sighting
 
@@ -72,4 +71,8 @@ if __name__ == "__main__":
 	loop = asyncio.new_event_loop(); asyncio.set_event_loop(loop)
 	for sig in (signal.SIGINT, signal.SIGTERM):
 		loop.add_signal_handler(sig, lambda s=sig: loop.stop())
-	loop.run_until_complete(main())
+	try:
+		loop.run_until_complete(main())
+	except RuntimeError as e:
+		if str(e) != "Event loop stopped before Future completed.":
+			raise
