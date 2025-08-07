@@ -10,12 +10,17 @@ JON_MAC  = "AA:BB:CC:DD:EE:01"                         # constant mock MAC
 JON_HASH = hashlib.sha256(JON_MAC.encode() + SECRET_SALT).hexdigest()
 
 with sqlite3.connect(DB_PATH) as _con:
+    _con.execute("""
+        CREATE TABLE IF NOT EXISTS members (
+            hash TEXT PRIMARY KEY,
+            name TEXT
+        );
+    """)
     _con.execute(
         "INSERT OR IGNORE INTO members(hash, name) VALUES (?, ?)",
         (JON_HASH, "Jonathan"),
     )
     _con.commit()
-
 # ─────────────────────────────────────────────────────────────────────────────
 def _random_mac() -> str:
     return ":".join(f"{random.randint(0,255):02X}" for _ in range(6))
