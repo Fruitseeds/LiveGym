@@ -22,11 +22,14 @@ function login() {
         currentRole = user.role;
         document.getElementById('login-section').style.display = 'none';
         document.getElementById('dashboard').style.display = 'block';
+        document.getElementById('logout-button').style.display = 'inline-block';
 
         if (currentRole === 'employee') {
-            document.getElementById('member-section').style.display = 'block';
+            document.getElementById('members-section').style.display = 'block';
+            document.getElementById('nonmembers-section').style.display = 'block';
         } else {
-            document.getElementById('member-section').style.display = 'none';
+            document.getElementById('members-section').style.display = 'none';
+            document.getElementById('nonmembers-section').style.display = 'none';
         }
 
         fetchData();
@@ -40,17 +43,15 @@ function logout() {
     currentRole = null;
     clearInterval(refreshInterval);
 
-    // Clear dashboard
     document.getElementById('occupancy').textContent = "Loading...";
     document.getElementById('valid-members').innerHTML = '';
     document.getElementById('non-members').innerHTML = '';
 
-    // Show login again
     document.getElementById('login-section').style.display = 'block';
     document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('logout-button').style.display = 'none';
     document.getElementById('login-error').textContent = '';
 
-    // Reset form
     document.getElementById('username').value = '';
     document.getElementById('password').value = '';
 }
