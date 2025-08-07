@@ -1,45 +1,41 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LiveGym Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1 class="title">LiveGym Dashboard</h1>
+    <h1>LiveGym Dashboard</h1>
 
-        <!-- Login Section -->
-        <div id="login-section" class="card">
-            <h2>Login</h2>
-            <input type="text" id="username" placeholder="Username">
-            <input type="password" id="password" placeholder="Password">
-            <button onclick="login()">Login</button>
-            <p id="login-error" style="color: red; font-weight: 500;"></p>
+    <!-- Login -->
+    <div id="login-section">
+        <h2>Login</h2>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">Login</button>
+        <p id="login-error" style="color:red;"></p>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" style="display:none;">
+        <button id="logout-button" onclick="logout()">Logout</button>
+
+        <div id="occupancy-section">
+            <h2>Current Occupancy:</h2>
+            <p id="occupancy">Loading...</p>
         </div>
 
-        <!-- Logout Button -->
-        <button id="logout-button" onclick="logout()" style="display:none;">Logout</button>
+        <div id="member-section">
+            <h2>Valid Members</h2>
+            <ul id="valid-members"></ul>
 
-        <!-- Dashboard Content -->
-        <div id="dashboard" style="display:none; width: 100%;">
-            <div class="card occupancy">
-                <h2>Current Occupancy</h2>
-                <p id="occupancy" class="number">Loading...</p>
-            </div>
-
-            <div class="card" id="members-section">
-                <h2>Valid Members</h2>
-                <ul id="valid-members" class="list"></ul>
-            </div>
-
-            <div class="card" id="nonmembers-section">
-                <h2>Unrecognized Devices</h2>
-                <ul id="non-members" class="list"></ul>
-            </div>
+            <h2>Unrecognized Devices</h2>
+            <ul id="non-members"></ul>
         </div>
+
+        <button id="selfcheck-btn" onclick="selfCheck()">I'm here!</button>
     </div>
 
     <script src="static/script.js"></script>
