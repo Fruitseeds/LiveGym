@@ -1,162 +1,124 @@
+/* -----------------------------------------------------------------------
+   Simple front-end logic for LiveGym demo
+   --------------------------------------------------------------------- */
 
-const useMockData = false;
+const useMockData = false;   // set true for offline UI tests only
 
-// User login database
+// Hard-coded demo users
 const users = [
-    { username: "Ayman",    password: "Taleb",   role: "employee" },
-    { username: "Jonathan", password: "Zahavi",  role: "employee" },
-    { username: "Evan",     password: "Rich",    role: "customer" },
-    { username: "Mathew",   password: "Isac",    role: "customer" }
-// very simple auth – demo only
-const users = [
-    { username: "Ayman",     password: "Taleb",  role: "admin" },
-    { username: "Jonathan",  password: "Zahavi", role: "admin" },
-    { username: "Evan",      password: "Rich",   role: "member" },
-    { username: "Mathew",    password: "Isac",   role: "member" }
+    { username: "Jonathan", password: "Zahavi",  role: "admin"  },
+    { username: "Ayman",    password: "Taleb",   role: "admin"  },
+    { username: "Evan",     password: "Rich",    role: "member" },
+    { username: "Mathew",   password: "Isac",    role: "member" }
 ];
 
-let currentRole = null;
-let refreshInterval = null;
+let currentRole      = null;
+let refreshInterval  = null;
+
+/* ---------- Login / Logout ------------------------------------------------ */
 
 function login() {
-    const uname = document.getElementById('username').value;
-    const pword = document.getElementById('password').value;
-    const errorMSG = document.getElementById('login-error');
+    const uname = document.getElementById("username").value.trim();
+    const pword = document.getElementById("password").value;
+    const errorMsg = document.getElementById("login-error");
 
     const user = users.find(u => u.username === uname && u.password === pword);
-
-    if (user) {
-        currentRole = user.role;
-
-        document.getElementById('login-section').style.display = 'none';
-        document.getElementById('dashboard').style.display = 'block';
-        document.getElementById('logout-button').style.display = 'inline-block';
-
-        if (currentRole === 'employee') {
-            document.getElementById('members-section').style.display = 'block';
-            document.getElementById('nonmembers-section').style.display = 'block';
-        } else {
-            document.getElementById('members-section').style.display = 'none';
-            document.getElementById('nonmembers-section').style.display = 'none';
-        }
-
-        fetchData();
-        refreshInterval = setInterval(fetchData, 10000);
-    } else {
-        errorMsg.textContent = "Invalid username or password.";
     if (!user) {
-        errorMSG.textContent = "Invalid username or password.";
+        errorMsg.textContent = "Invalid username or password.";
         return;
     }
+    errorMsg.textContent = "";
 
     currentRole = user.role;
-    // toggle UI
-    document.getElementById('login-section').style.display = 'none';
-    document.getElementById('dashboard').style.display = 'block';
-    document.getElementById('member-section').style.display = (currentRole === 'admin') ? 'block' : 'none';
+    document.getElementById("login-section").style.display = "none";
+    document.getElementById("dashboard").style.display     = "block";
+    document.getElementById("member-section").style.display =
+        currentRole === "admin" ? "block" : "none";
 
     fetchData();
-    refreshInterval = setInterval(fetchData, 10000);
+    refreshInterval = setInterval(fetchData, 10_000);  // 10-s refresh
 }
 
 function logout() {
-    currentRole = null;
     clearInterval(refreshInterval);
+    currentRole = null;
 
-    // clear UI
-    document.getElementById('occupancy').textContent = "Loading...";
-    document.getElementById('valid-members').innerHTML = '';
-    document.getElementById('non-members').innerHTML = '';
-
-    // show login
-    document.getElementById('login-section').style.display = 'block';
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('login-error').textContent = '';
-
-    // reset form
-    document.getElementById('username').value = '';
-    document.getElementById('password').value = '';
+    // reset UI
+    document.getElementById("dashboard").style.display     = "none";
+    document.getElementById("login-section").style.display = "block";
+    document.getElementById("username").value  = "";
+    document.getElementById("password").value  = "";
+    document.getElementById("login-error").textContent = "";
+    document.getElementById("occupancy").textContent   = "Loading…";
+    document.getElementById("valid-members").innerHTML = "";
+    document.getElementById("non-members").innerHTML   = "";
 }
+
+/* ---------- Helper: create action buttons --------------------------------- */
 
 function createAction(text, cb) {
-    const btn = document.createElement('button');
-    btn.textContent = text;
-    btn.onclick = cb;
-    btn.style.marginLeft = '6px';
-    return btn;
-    const b = document.createElement('button');
+    const b = document.createElement("button");
     b.textContent = text;
     b.onclick = cb;
-    b.style.marginLeft = '6px';
+    b.style.marginLeft = "6px";
     return b;
 }
+
+/* ---------- Fetch data from API ------------------------------------------- */
 
 async function fetchData() {
     let countData, memberData;
 
     if (useMockData) {
-        countData = { occupancy: 4 };
+        countData  = { occupancy: 4 };
         memberData = {
             valid_members: [{ hash: "abc", name: "Evan" }],
-            non_members: [{ hash: "def", name: null }]
-            valid_members: [{hash:"abc", name:"Evan"}],
-            non_members:  [{hash:"def", name:null}]
+            non_members:  [{ hash: "def", name: null }]
         };
     } else {
-        countData   = await fetch('/count').then(r => r.json());
-        memberData  = await fetch('/members').then(r => r.json());
+        countData  = await fetch("/count").then(r => r.json());
+        memberData = await fetch("/members").then(r => r.json());
     }
 
-    document.getElementById('occupancy').textContent = countData.occupancy;
+    document.getElementById("occupancy").textContent = countData.occupancy;
 
-    if (currentRole === 'employee') {
-    if (currentRole === 'admin') {
+    if (currentRole === "admin") {
         renderMemberLists(memberData);
     }
 }
 
+/* ---------- Render member / non-member lists ----------------------------- */
+
 function renderMemberLists(data) {
-    const vList = document.getElementById('valid-members');
-    const nList = document.getElementById('non-members');
-    vList.innerHTML = '';
-    nList.innerHTML = '';
+    const vList = document.getElementById("valid-members");
+    const nList = document.getElementById("non-members");
+    vList.innerHTML = ""; nList.innerHTML = "";
 
     data.valid_members.forEach(obj => {
-        const li = document.createElement('li');
+        const li = document.createElement("li");
         li.textContent = obj.name || obj.hash.slice(0, 8);
-        li.appendChild(createAction('Remove', () => adminRemove(obj.hash)));
-        li.appendChild(createAction('Block', () => adminBlock(obj.hash)));
-    vList.innerHTML = ''; nList.innerHTML = '';
-
-    data.valid_members.forEach(obj => {
-        const li = document.createElement('li');
-        li.textContent = obj.name || obj.hash.slice(0,8);
-        li.appendChild(createAction('Remove', () => adminRemove(obj.hash)));
-        li.appendChild(createAction('Block',  () => adminBlock(obj.hash)));
+        li.appendChild(createAction("Remove", () => adminRemove(obj.hash)));
+        li.appendChild(createAction("Block",  () => adminBlock(obj.hash)));
         vList.appendChild(li);
     });
 
     data.non_members.forEach(obj => {
-        const li = document.createElement('li');
+        const li = document.createElement("li");
         li.textContent = obj.hash.slice(0, 8);
-        li.appendChild(createAction('Add', () => adminAdd(obj.hash)));
-        li.textContent = obj.hash.slice(0,8);
-        li.appendChild(createAction('Add',   () => adminAdd(obj.hash)));
-        li.appendChild(createAction('Block', () => adminBlock(obj.hash)));
+        li.appendChild(createAction("Add",   () => adminAdd(obj.hash)));
+        li.appendChild(createAction("Block", () => adminBlock(obj.hash)));
         nList.appendChild(li);
     });
 }
 
+/* ---------- Admin actions ------------------------------------------------- */
+
 async function adminAdd(hash) {
     const name = prompt("Member name:");
-    if (!name) return;
-    await fetch(`/register/${hash}?name=${encodeURIComponent(name)}`);
+    await fetch(`/register/${hash}?name=${encodeURIComponent(name || "Member")}`);
     fetchData();
 }
 
-    await fetch(`/register/${hash}?name=${encodeURIComponent(name || 'Member')}`);
-    fetchData();
-}
 async function adminRemove(hash) {
     await fetch(`/remove/${hash}`);
     fetchData();
@@ -167,23 +129,8 @@ async function adminBlock(hash) {
     fetchData();
 }
 
-// Self check-in logic
-function selfCheck() {
-    const h = prompt("Enter your device hash:");
-    if (!h) return;
+/* ---------- Self-check endpoint ------------------------------------------ */
 
-    fetch(`/selfcheck/${h}`)
-        .then(res => {
-            if (!res.ok) throw new Error("Check-in failed");
-            return res.json();
-        })
-        .then(data => {
-            alert(data.message || "Checked in!");
-        })
-        .catch(err => {
-            alert("Self-check failed.");
-            console.error(err);
-        });
 function selfCheck() {
     const h = prompt("Enter your device hash:");
     if (!h) return;

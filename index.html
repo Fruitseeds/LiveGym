@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -9,50 +8,27 @@
 <body>
     <h1>LiveGym Dashboard</h1>
 
-    <!-- Login -->
+    <!-- --- Login --- -->
     <div id="login-section">
         <h2>Login</h2>
-        <input type="text" id="username" placeholder="Username">
+        <input type="text"     id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button onclick="login()">Login</button>
         <p id="login-error" style="color:red;"></p>
     </div>
 
-    <!-- Dashboard -->
+    <!-- --- Dashboard (hidden until login) --- -->
     <div id="dashboard" style="display:none;">
         <button id="logout-button" onclick="logout()">Logout</button>
 
         <div id="occupancy-section">
             <h2>Current Occupancy:</h2>
-            <p id="occupancy">Loading...</p>
+            <p id="occupancy">Loading&hellip;</p>
         </div>
 
         <div id="member-section">
             <h2>Valid Members</h2>
             <ul id="valid-members"></ul>
-
-        <!-- Dashboard -->
-        <div id="dashboard" style="display:none; width: 100%;">
-            <div class="card occupancy">
-                <h2>Current Occupancy</h2>
-                <p id="occupancy" class="number">Loading...</p>
-            </div>
-
-            <div class="card" id="members-section">
-                <h2>Valid Members</h2>
-                <ul id="valid-members" class="list"></ul>
-            </div>
-
-            <div class="card" id="nonmembers-section">
-                <h2>Unrecognized Devices</h2>
-                <ul id="non-members" class="list"></ul>
-            </div>
-
-            <div class="card">
-                <h2>Self Check-In</h2>
-                <button id="selfcheck-btn" onclick="selfCheck()">I'm here!</button>
-            </div>
-        </div>
 
             <h2>Unrecognized Devices</h2>
             <ul id="non-members"></ul>
