@@ -3,8 +3,8 @@ from bleak import BleakScanner
 from datetime import datetime, timedelta
 from ble.config import SECRET_SALT, DB_PATH
 from ble import mock_ble
-WINDOW = 30              
-PRESENT_TTL = 300        
+WINDOW = 30
+PRESENT_TTL = 300
 
 # ---------- SQLite helpers -------------------------------------------------
 schema = """
@@ -52,7 +52,8 @@ async def main():
 		await mock_ble.pump(handle)               # runs forever
 	else:
 		print("[BLE] passive scan … Ctrl-C to quit")
-		async with BleakScanner(handle, scanning_mode="passive"):
+		scanner_ctx = BleakScanner(handle)
+		async with scanner_ctx:
 			try:
 				while True:
 					await asyncio.sleep(1)
